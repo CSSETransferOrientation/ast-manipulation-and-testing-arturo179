@@ -79,41 +79,37 @@ class BinOpAst():
                 return self.left.postfix_str() + ' ' + self.right.postfix_str() + ' ' + self.val
 
     def additive_identity(self):
-        """
-        Reduce additive identities
-        x + 0 = x
-        """
-        # IMPLEMENT ME!
-        pass
-                        
-    def multiplicative_identity(self):
-        """
-        Reduce multiplicative identities
-        x * 1 = x
-        """
-        # IMPLEMENT ME!
-        pass
-    
-    
-    def mult_by_zero(self):
-        """
-        Reduce multiplication by zero
-        x * 0 = 0
-        """
-        # Optionally, IMPLEMENT ME! (I'm pretty easy)
-        pass
-    
-    def constant_fold(self):
-        """
-        Fold constants,
-        e.g. 1 + 2 = 3
-        e.g. x + 2 = x + 2
-        """
-        # Optionally, IMPLEMENT ME! This is a bit more challenging. 
-        # You also likely want to add an additional node type to your AST
-        # to represent identifiers.
-        pass            
+        if self.type == NodeType.operator and self.val == '+':
+            if self.right.type == NodeType.number and self.right.val == '0':
+                return self.left
+            elif self.left.type == NodeType.number and self.left.val == '0':
+                return self.right
+        
+        if self.type == NodeType.operator:
+            if self.left:
+                self.left = self.left.additive_identity()
+            if self.right:
+                self.right = self.right.additive_identity()
+        
+        return self
 
+    def multiplicative_identity(self):
+        if self.type == NodeType.operator and self.val == '*':
+            if self.right.type == NodeType.number and self.right.val == '1':
+                return self.left
+            elif self.left.type == NodeType.number and self.left.val == '1':
+                return self.right
+        
+        if self.type == NodeType.operator:
+            if self.left:
+                self.left = self.left.multiplicative_identity()
+            if self.right:
+                self.right = self.right.multiplicative_identity()
+
+        return self
+        # IMPLEMENT ME!
+    
+                
     def simplify_binops(self):
         """
         Simplify binary trees with the following:
@@ -122,11 +118,36 @@ class BinOpAst():
         3) Extra #1: Multiplication by 0, e.g. x * 0 = 0
         4) Extra #2: Constant folding, e.g. statically we can reduce 1 + 1 to 2, but not x + 1 to anything
         """
-        self.additive_identity()
-        self.multiplicative_identity()
-        self.mult_by_zero()
-        self.constant_fold()
+        self = self.additive_identity()
+        self = self.multiplicative_identity()
+        return self
+        #self.multiplicative_identity()
+       # self.mult_by_zero()
+        #self.constant_fold()
 
+class BinOpAstTester(unittest.TestCase):
+    # ins = osjoin(input('Enter test folder name (enter for testbench): ').strip() or 'testbench')
+    ins = 'testbench'
+    def testAll(self):
+        print('\n')
+        for test_type in os.listdir(self.ins):
+            for test_file in os.listdir(osjoin(self.ins, test_type, 'inputs')):
+                if test_file.endswith('.txt'):
+                    with open(osjoin(self.ins, test_type, 'inputs', test_file)) as test:
+                        test_name = test.readline().strip()
+                        data = test.readline().strip()
+                    with open(osjoin(self.ins, test_type, 'outputs', test_file)) as solution:
+                        expected = solution.readline().strip()
+                    print(f'Testing {test_name}')
+                    with self.subTest(msg=f'Testing {test_name}', inp=data, expected=expected):
+                        result = BinOpAst(list(data.split()))
+                        result.simplify_binops()
+                        result = result.prefix_str()
+                        self.assertEqual(result, expected)
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(argv=[''], verbosity=2, exit=False)
+    
+
+
+   
