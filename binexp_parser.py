@@ -85,6 +85,7 @@ class BinOpAst():
             elif self.left.type == NodeType.number and self.left.val == '0':
                 return self.right
         
+        # ;;> Recur needed to come first so you pull everything up, see 'propogate' test that I added
         if self.type == NodeType.operator:
             if self.left:
                 self.left = self.left.additive_identity()
@@ -132,6 +133,7 @@ class BinOpAstTester(unittest.TestCase):
         print('\n')
         for test_type in os.listdir(self.ins):
             for test_file in os.listdir(osjoin(self.ins, test_type, 'inputs')):
+                # None of your tests end in .txt, nothing is really running here
                 if test_file.endswith('.txt'):
                     with open(osjoin(self.ins, test_type, 'inputs', test_file)) as test:
                         test_name = test.readline().strip()
